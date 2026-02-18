@@ -9,7 +9,7 @@ import videoData from "@/data/videos.json";
 import type { CategoryWithContents } from "@/types";
 
 function VideoFeed() {
-  const { openVideo } = useVideo();
+  const { openVideo, useCustomPlayerForYouTube, toggleYouTubePlayerMode } = useVideo();
   const categories = useMemo(() => videoData.categories as CategoryWithContents[], []);
 
   return (
@@ -17,6 +17,63 @@ function VideoFeed() {
       <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-white/10 dark:border-black/10 py-4 px-4">
         <h1 className="text-xl font-bold">Video Feed</h1>
       </header>
+
+      {/* Player Settings Section */}
+      <section className="bg-white dark:bg-slate-950 px-4 py-8 border-b border-gray-200 dark:border-white/10">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">Player Settings</h2>
+          
+          {/* YouTube Player Mode Selection */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">YouTube Videos</h3>
+            <div className="flex gap-4">
+              <button
+                onClick={() => {
+                  if (useCustomPlayerForYouTube) toggleYouTubePlayerMode();
+                }}
+                className={`flex-1 py-4 px-6 rounded-lg font-semibold text-lg transition-all ${
+                  !useCustomPlayerForYouTube
+                    ? "bg-red-500 text-white shadow-lg shadow-red-500/40 ring-2 ring-red-300 hover:bg-red-600"
+                    : "bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                ▶️ Native iframe Player
+              </button>
+              <button
+                onClick={() => {
+                  if (!useCustomPlayerForYouTube) toggleYouTubePlayerMode();
+                }}
+                className={`flex-1 py-4 px-6 rounded-lg font-semibold text-lg transition-all ${
+                  useCustomPlayerForYouTube
+                    ? "bg-blue-500 text-white shadow-lg shadow-blue-500/40 ring-2 ring-blue-300 hover:bg-blue-600"
+                    : "bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                📺 Custom HTML5 Player
+              </button>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-3">
+              {useCustomPlayerForYouTube
+                ? "Testing: Custom player with our controls"
+                : "Default: YouTube's native player"}
+            </p>
+          </div>
+
+          {/* MP4 Player Info */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">MP4 Videos</h3>
+            <div className="py-4 px-6 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <button disabled className="w-full py-4 px-6 rounded-lg font-semibold text-lg bg-green-500 text-white cursor-default shadow-lg shadow-green-500/40">
+                🎬 Custom HTML5 Player (Only Option)
+              </button>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-3">
+                MP4 videos use custom player with full controls (play, pause, seek, volume, fullscreen)
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <main className="px-4 py-6 space-y-8">
         {categories.map((cat) => (
           <section key={cat.category.slug}>

@@ -18,6 +18,7 @@ export function UnifiedPlayer() {
     minimizePlayer,
     restorePlayer,
     isMinimized,
+    useCustomPlayerForYouTube,
   } = useVideo();
   const [listVisible, setListVisible] = useState(false);
   const [showCountdown, setShowCountdown] = useState(false);
@@ -108,7 +109,7 @@ export function UnifiedPlayer() {
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col">
       <div className="relative flex-1 min-h-0 flex flex-col">
-        <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/60 to-transparent">
+        <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-end p-4 bg-gradient-to-b from-black/60 to-transparent">
           <button
             type="button"
             onClick={closeVideo}
@@ -128,6 +129,7 @@ export function UnifiedPlayer() {
               onRestore={() => {}}
               onEnded={handleEnded}
               showCustomControls
+              forceCustomPlayer={useCustomPlayerForYouTube}
               className="w-full h-full min-h-[250px]"
             />
           </div>

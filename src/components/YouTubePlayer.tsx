@@ -12,6 +12,7 @@ interface MediaPlayerProps {
   onEnded?: () => void;
   showCustomControls?: boolean;
   className?: string;
+  forceCustomPlayer?: boolean; // Force custom player for YouTube too (for testing)
 }
 
 function formatTime(seconds: number): string {
@@ -39,6 +40,7 @@ export function YouTubePlayer({
   onEnded,
   showCustomControls = true,
   className = "",
+  forceCustomPlayer = false,
 }: MediaPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -51,8 +53,10 @@ export function YouTubePlayer({
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const lastClickRef = useRef<number>(0);
-  const isYouTube = isYouTubeUrl(video.mediaUrl);
-  const youtubeUrl = isYouTube ? getYouTubeEmbedUrl(video.mediaUrl) : null;
+  const isYouTubeUrl_check = isYouTubeUrl(video.mediaUrl);
+  // If force custom player, treat YouTube as regular video for control purposes
+  const isYouTube = forceCustomPlayer ? false : isYouTubeUrl_check;
+  const youtubeUrl = isYouTubeUrl_check ? getYouTubeEmbedUrl(video.mediaUrl) : null;
 
   const tick = useCallback(() => {
     if (videoRef.current) {
@@ -217,7 +221,7 @@ export function YouTubePlayer({
       }}
     >
       {/* Native HTML5 Video Player */}
-      {!isYouTube && (
+      {!isYouTube && !forceCustomPlayer && (
         <video
           ref={videoRef}
           src={video.mediaUrl}
@@ -229,8 +233,8 @@ export function YouTubePlayer({
         />
       )}
 
-      {/* YouTube IFrame Fallback */}
-      {isYouTube && (
+      {/* YouTube IFrame - With or Without Custom Controls */}
+      {isYouTubeUrl_check && (
         <div
           className="absolute inset-0 w-full h-full cursor-pointer"
           onDoubleClick={handleDoubleClick}
@@ -240,9 +244,21 @@ export function YouTubePlayer({
             className="w-full h-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            style={{ border: "none", pointerEvents: "auto" }}
+            style={{ 
+              border: "none", 
+              pointerEvents: forceCustomPlayer ? "none" : "auto"
+            }}
             title="YouTube player"
           />
+          {/* Custom controls overlay for YouTube when forceCustomPlayer is true */}
+          {forceCustomPlayer && (
+            <div className="absolute inset-0 flex items-center justify-center text-white text-center px-4">
+              <div className="bg-black/70 px-4 py-3 rounded">
+                <p className="text-sm">YouTube videos work better with native player</p>
+                <p className="text-xs text-gray-400 mt-1">Custom controls overlay not supported for YouTube</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

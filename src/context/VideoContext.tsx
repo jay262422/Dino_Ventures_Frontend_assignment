@@ -9,12 +9,14 @@ interface VideoContextType {
   relatedVideos: VideoContent[];
   isPlayerOpen: boolean;
   isMinimized: boolean;
+  useCustomPlayerForYouTube: boolean;
   openVideo: (video: VideoContent, category: CategoryWithContents) => void;
   closeVideo: () => void;
   selectVideo: (video: VideoContent, category: CategoryWithContents) => void;
   minimizePlayer: () => void;
   restorePlayer: () => void;
   closeMiniPlayer: () => void;
+  toggleYouTubePlayerMode: () => void;
 }
 
 const VideoContext = createContext<VideoContextType | null>(null);
@@ -24,6 +26,7 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
   const [currentCategory, setCurrentCategory] = useState<CategoryWithContents | null>(null);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [useCustomPlayerForYouTube, setUseCustomPlayerForYouTube] = useState(false);
 
   const relatedVideos = currentCategory
     ? currentCategory.contents.filter((v) => v.slug !== currentVideo?.slug)
@@ -63,6 +66,10 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
     setCurrentCategory(null);
   }, []);
 
+  const toggleYouTubePlayerMode = useCallback(() => {
+    setUseCustomPlayerForYouTube((prev) => !prev);
+  }, []);
+
   return (
     <VideoContext.Provider
       value={{
@@ -71,12 +78,14 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
         relatedVideos,
         isPlayerOpen,
         isMinimized,
+        useCustomPlayerForYouTube,
         openVideo,
         closeVideo,
         selectVideo,
         minimizePlayer,
         restorePlayer,
         closeMiniPlayer,
+        toggleYouTubePlayerMode,
       }}
     >
       {children}
