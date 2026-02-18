@@ -61,7 +61,7 @@ export function DraggablePlayer() {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onMouseDown={handleMouseDown}
-      style={{ transform: `translateY(${Math.min(dragY, 200)}px)` }}
+      style={dragY > 0 ? { transform: `translateY(${Math.min(dragY, 200)}px)` } : undefined}
       className={dragY > 0 ? "" : "transition-transform duration-200"}
     >
       <UnifiedPlayer />

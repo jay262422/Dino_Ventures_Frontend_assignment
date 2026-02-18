@@ -1,76 +1,96 @@
 # Dino Ventures - Video Player Application
 
-A mobile-first video player application with a YouTube-like experience. Built with **Next.js**, **React**, **TypeScript**, and **Tailwind CSS**.
+Mobile-first video player experience inspired by YouTube mobile UX, built for the Dino Ventures Frontend Engineer assignment.
 
-## Features
+## Assignment Coverage
 
-### Core Requirements
-- **Home Page – Video Feed**: Scrollable list of videos grouped by category (Social Media AI, AI Income, AI Essentials)
-- **Video Cards**: Thumbnail, title, duration, category badge
-- **Full-Page Video Player**: Auto-play, custom controls (play/pause, ±10s skip, seekable progress bar, time display)
-- **In-Player Video List**: Swipe up or tap to reveal related videos (same category); click to switch
-- **Drag-to-Minimize**: Drag the player down to dock into a mini-player at the bottom; persists while browsing; tap to restore
+| Requirement | Status | Implementation |
+| --- | --- | --- |
+| Home feed grouped by category | Done | Category sections with video cards |
+| Video card metadata | Done | Thumbnail, title, duration, category badge |
+| Full-page player autoplay | Done | Auto-play on open for MP4 and YouTube |
+| Custom controls | Done | Play/pause, +/-10s, seek, time, volume, fullscreen |
+| In-player related list (same category) | Done | Swipe/scroll/toggle reveal + instant switch |
+| Drag-to-minimize mini-player | Done | Drag down to dock, restore on tap, persistent mini-player |
+| Mini-player controls | Done | Play/pause + close + title |
+| Bonus: auto-play next | Done | 2-second countdown with cancel |
 
-### Bonus
-- **Auto-play Next**: 2-second countdown with cancel option when current video ends
-- **Skip Button Feedback**: Visual animation on +10 / -10 skip
-- **Responsive**: Mobile-first, works on desktop and mobile
+## Key Notes
+
+- YouTube default mode is **Custom** (IFrame API control mode).
+- YouTube native iframe mode remains available as a fallback via toggle.
+- MP4 uses native HTML5 video with full custom controls.
+- UI and interactions are optimized for mobile first, with desktop support.
 
 ## Tech Stack
 
-- **Next.js 16** – React framework
-- **TypeScript** – Type safety
-- **Tailwind CSS** – Styling
-- **Lucide React** – Icons
-- **YouTube IFrame API** – Custom controls over embedded videos
+- Next.js 16 (App Router)
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- Lucide React
+- YouTube IFrame API
 
-## Getting Started
+## Local Development
 
 ### Prerequisites
-- Node.js 18+
 
-### Install and Run
+- Node.js 18+
+- npm
+
+### Install
 
 ```bash
 npm install
+```
+
+### Run
+
+```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open `http://localhost:3000`.
 
-### Build for Production
+### Quality Checks
 
 ```bash
+npm run lint
 npm run build
-npm start
 ```
-
-## Deploy
-
-Deploy to Vercel (recommended):
-
-```bash
-vercel
-```
-
-Or connect your GitHub repo to [Vercel](https://vercel.com) for automatic deploys.
 
 ## Project Structure
 
-```
+```text
 src/
-├── app/           # Next.js App Router
-├── components/    # VideoCard, YouTubePlayer, UnifiedPlayer, DraggablePlayer
-├── context/       # VideoContext (state management)
-├── data/          # videos.json (dataset)
-└── types/         # TypeScript types
+  app/                 # App Router pages
+  components/          # Feed cards, player components, drag/minimize UI
+  context/             # Global video/player state
+  data/                # Assignment dataset (videos.json)
+  types/               # Shared TypeScript types
+  utils/               # Utility helpers
 ```
 
-## Dataset
+## Deployment (Vercel)
 
-Videos are loaded from `src/data/videos.json` (provided dataset). All videos are YouTube embeds. The player uses the YouTube IFrame API for custom controls.
+1. Push this repository to GitHub.
+2. Import the repo in Vercel.
+3. Use defaults (Next.js auto-detected):
+   - Build command: `npm run build`
+   - Install command: `npm install`
+4. Deploy and copy the production URL.
 
-## Notes
+## Interviewer-Ready Submission Checklist
 
-- **MP4 Support**: The player architecture supports MP4 via the native `<video>` element; the provided dataset uses YouTube embeds.
-- **PiP API**: Browser Picture-in-Picture works with native video elements. YouTube embeds use an iframe, so true PiP is limited by browser support for iframe PiP.
+- [ ] Public GitHub repository link is available.
+- [ ] Live deployed URL is available and reachable.
+- [ ] README reflects final implemented behavior.
+- [ ] `npm run lint` passes.
+- [ ] `npm run build` passes.
+- [ ] Feed open -> full player transition verified.
+- [ ] MP4 controls verified (play/pause, seek, skip, time, volume, fullscreen).
+- [ ] YouTube custom mode verified (play/pause, seek, skip, time sync).
+- [ ] Related list filtering and switching verified.
+- [ ] Drag-to-minimize and restore verified on mobile and desktop.
+- [ ] Auto-play next countdown verified with cancel action.
+- [ ] Optional demo recording captured.

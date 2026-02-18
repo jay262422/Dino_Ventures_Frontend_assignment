@@ -3,6 +3,15 @@
  * For MP4: Load video and get duration
  * For YouTube: Use YouTube Data API or extract from metadata
  */
+import type { VideoContent } from "@/types";
+
+export interface DurationDetectionResult {
+  slug: string;
+  title: string;
+  oldDuration?: string;
+  newDuration: string;
+  mediaType: VideoContent["mediaType"];
+}
 
 function formatTime(seconds: number): string {
   if (!isFinite(seconds) || seconds < 0) return "0:00";
@@ -45,12 +54,12 @@ export async function getYouTubeDurationFromAPI(videoId: string): Promise<string
   try {
     const response = await fetch(
       `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`,
-      { headers: { 'Accept': '*/*' } }
+      { headers: { Accept: "*/*" } }
     );
     
     if (!response.ok) throw new Error("oEmbed API failed");
-    
-    const data = await response.json();
+
+    await response.json();
     
     // oEmbed doesn't return duration, but we can try alternative approach
     // Parse from iframe title or metadata if available
@@ -61,12 +70,12 @@ export async function getYouTubeDurationFromAPI(videoId: string): Promise<string
   }
 }
 
-export async function detectAllVideosDurations(videos: any[]) {
-  const results: any[] = [];
+export async function detectAllVideosDurations(videos: VideoContent[]): Promise<DurationDetectionResult[]> {
+  const results: DurationDetectionResult[] = [];
   
   for (const video of videos) {
     try {
-      let duration = video.duration; // Default to backend value
+      let duration = video.duration ?? "0:00"; // Default to backend value
       
       if (video.mediaType === "MP4") {
         const detected = await detectMP4Duration(video.mediaUrl);
@@ -106,7 +115,7 @@ export async function detectAllVideosDurations(videos: any[]) {
   return results;
 }
 
-export function generateUpdateScript(results: any[]): string {
+export function generateUpdateScript(results: DurationDetectionResult[]): string {
   let script = `// Copy the correct durations from the results above:\n\n`;
   results.forEach((item) => {
     if (item.newDuration !== "UNKNOWN" && item.newDuration !== item.oldDuration) {

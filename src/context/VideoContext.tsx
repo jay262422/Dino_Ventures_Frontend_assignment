@@ -26,7 +26,7 @@ export function VideoProvider({ children }: { children: React.ReactNode }) {
   const [currentCategory, setCurrentCategory] = useState<CategoryWithContents | null>(null);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [useCustomPlayerForYouTube, setUseCustomPlayerForYouTube] = useState(false);
+  const [useCustomPlayerForYouTube, setUseCustomPlayerForYouTube] = useState(true);
 
   const relatedVideos = currentCategory
     ? currentCategory.contents.filter((v) => v.slug !== currentVideo?.slug)

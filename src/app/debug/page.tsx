@@ -1,20 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { detectAllVideosDurations } from "@/utils/videoDurationDetector";
+import {
+  detectAllVideosDurations,
+  type DurationDetectionResult,
+} from "@/utils/videoDurationDetector";
 import videosData from "@/data/videos.json";
+import type { CategoryWithContents, VideoContent } from "@/types";
 
 export default function DurationDebugPage() {
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<DurationDetectionResult[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const detectDurations = async () => {
-      const allVideos: any[] = [];
-      
+      const allVideos: VideoContent[] = [];
+
       // Flatten all videos from all categories
-      videosData.categories.forEach((cat) => {
-        allVideos.push(...cat.contents);
+      (videosData.categories as CategoryWithContents[]).forEach((category) => {
+        allVideos.push(...category.contents);
       });
 
       const detectedResults = await detectAllVideosDurations(allVideos);
@@ -45,13 +49,11 @@ export default function DurationDebugPage() {
   return (
     <div className="min-h-screen bg-black text-white p-6">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">📊 Video Duration Detection</h1>
+        <h1 className="text-3xl font-bold mb-6">Video Duration Detection</h1>
 
         <div className="bg-gray-900 rounded-lg p-4 mb-6">
-          <p className="text-sm text-gray-300 mb-4">
-            ✅ Detected {results.length} videos. Check the table below for changes:
-          </p>
-          
+          <p className="text-sm text-gray-300 mb-4">Detected {results.length} videos. Check the table below for changes:</p>
+
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-600">
@@ -64,9 +66,7 @@ export default function DurationDebugPage() {
             </thead>
             <tbody>
               {results.map((item) => {
-                const isChanged =
-                  item.newDuration !== "UNKNOWN" &&
-                  item.newDuration !== item.oldDuration;
+                const isChanged = item.newDuration !== "UNKNOWN" && item.newDuration !== item.oldDuration;
                 const bgColor = isChanged ? "bg-green-900/30" : "bg-gray-800/30";
 
                 return (
@@ -84,16 +84,14 @@ export default function DurationDebugPage() {
                       </span>
                     </td>
                     <td className="py-3 px-2 text-gray-400">{item.oldDuration}</td>
-                    <td className="py-3 px-2 font-mono text-white">
-                      {item.newDuration}
-                    </td>
+                    <td className="py-3 px-2 font-mono text-white">{item.newDuration}</td>
                     <td className="py-3 px-2">
                       {isChanged ? (
-                        <span className="text-green-400">✅ UPDATED</span>
+                        <span className="text-green-400">UPDATED</span>
                       ) : item.newDuration === "UNKNOWN" ? (
-                        <span className="text-yellow-400">⚠️ FAILED</span>
+                        <span className="text-yellow-400">FAILED</span>
                       ) : (
-                        <span className="text-gray-500">—</span>
+                        <span className="text-gray-500">--</span>
                       )}
                     </td>
                   </tr>
@@ -104,24 +102,20 @@ export default function DurationDebugPage() {
         </div>
 
         <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-4 mb-6">
-          <h2 className="font-bold mb-2">📋 JSON Updates Needed:</h2>
+          <h2 className="font-bold mb-2">JSON updates needed:</h2>
           <pre className="bg-black p-3 rounded text-xs overflow-auto max-h-96 text-green-400">
             {results
-              .filter(
-                (r) =>
-                  r.newDuration !== "UNKNOWN" &&
-                  r.newDuration !== r.oldDuration
-              )
+              .filter((result) => result.newDuration !== "UNKNOWN" && result.newDuration !== result.oldDuration)
               .map(
-                (r) =>
-                  `"${r.slug}": "${r.oldDuration}" → "${r.newDuration}"  // ${r.title}`
+                (result) =>
+                  `"${result.slug}": "${result.oldDuration}" -> "${result.newDuration}"  // ${result.title}`
               )
               .join("\n")}
           </pre>
         </div>
 
         <div className="bg-green-900/30 border border-green-600 rounded-lg p-4">
-          <h2 className="font-bold mb-2">✅ Next Steps:</h2>
+          <h2 className="font-bold mb-2">Next steps:</h2>
           <ol className="list-decimal list-inside space-y-2 text-sm">
             <li>Copy the updates from the blue box above</li>
             <li>Update videos.json with the new durations</li>
