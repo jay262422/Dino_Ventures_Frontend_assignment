@@ -7,6 +7,7 @@
         "iconUrl": "https://media.samajsaathi.com/icons/learn-ai/04-social-media-ai.png"
       },
       "contents": [
+        {"title": "Test MP4 Video Demo", "mediaUrl": "https://www.w3schools.com/html/mov_bbb.mp4", "mediaType": "MP4", "thumbnailUrl": "https://v3b.fal.media/files/b/0a877b29/TC9Jbr_MBNoEJm5Mwhc2F.png", "slug": "test-mp4-demo", "duration": "0:10"},
         {"title": "AI Motivational Reel Banao Free Mein", "mediaUrl": "https://youtube.com/embed/_HL7l_62bUc", "mediaType": "YOUTUBE", "thumbnailUrl": "https://v3b.fal.media/files/b/0a877b29/TC9Jbr_MBNoEJm5Mwhc2F.png", "slug": "_HL7l_62bUc", "duration": "5:24"},
         {"title": "Social Media Ke Liye Facts Video Banao", "mediaUrl": "https://youtube.com/embed/avZd1bSvqyE", "mediaType": "YOUTUBE", "thumbnailUrl": "https://v3b.fal.media/files/b/0a877b28/7hy7WSculPFwQtcVu0BzN.png", "slug": "avZd1bSvqyE", "duration": "4:18"},
         {"title": "Instagram Ka Naya AI Feature", "mediaUrl": "https://youtube.com/embed/meVTqNn1P5A", "mediaType": "YOUTUBE", "thumbnailUrl": "https://v3b.fal.media/files/b/0a877b2a/T6DpgH_xrEN15r1f3rqu-.png", "slug": "meVTqNn1P5A", "duration": "6:12"},

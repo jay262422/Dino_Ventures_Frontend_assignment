@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import { Play, Pause, SkipBack, SkipForward, Maximize2, Minimize2 } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Maximize2, Minimize2, Volume2, VolumeX } from "lucide-react";
 import type { VideoContent } from "@/types";
 
 interface MediaPlayerProps {
@@ -47,6 +47,10 @@ export function YouTubePlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [skipAnim, setSkipAnim] = useState<"fwd" | "back" | null>(null);
+  const [videoError, setVideoError] = useState<string | null>(null);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const lastClickRef = useRef<number>(0);
   const isYouTube = isYouTubeUrl(video.mediaUrl);
   const youtubeUrl = isYouTube ? getYouTubeEmbedUrl(video.mediaUrl) : null;
 
@@ -65,15 +69,45 @@ export function YouTubePlayer({
     const video = videoRef.current;
     if (!video || isYouTube) return;
 
-    const handleTimeUpdate = () => tick();
+    const handleTimeUpdate = () => {
+      tick();
+      // Sync play state with actual video state
+      if (videoRef.current) {
+        setIsPlaying(!videoRef.current.paused);
+      }
+    };
     const handleEnded = () => onEnded?.();
-    const handleLoadedMetadata = () => setIsReady(true);
-    const handleCanPlay = () => setIsReady(true);
+    const handleLoadedMetadata = () => {
+      setIsReady(true);
+      setVideoError(null);
+    };
+    const handleCanPlay = () => {
+      setIsReady(true);
+      setVideoError(null);
+      // Set volume from state
+      if (videoRef.current) {
+        videoRef.current.volume = volume;
+        videoRef.current.muted = isMuted;
+      }
+    };
+    const handleError = () => {
+      const errorMap: Record<number, string> = {
+        1: "Video loading was aborted",
+        2: "Network error while loading video",
+        3: "Video decoding failed",
+        4: "Video format not supported",
+      };
+      const errorCode = video.error?.code || 0;
+      const errorMsg = errorMap[errorCode] || `Unknown error (code: ${errorCode})`;
+      setVideoError(`Failed to load video: ${errorMsg}`);
+      console.error("Video error code:", errorCode, "Message:", errorMsg);
+    };
 
     video.addEventListener("timeupdate", handleTimeUpdate);
     video.addEventListener("ended", handleEnded);
     video.addEventListener("loadedmetadata", handleLoadedMetadata);
     video.addEventListener("canplay", handleCanPlay);
+    video.addEventListener("error", handleError);
 
     // Auto-play
     video.play().catch((e) => console.warn("Autoplay failed:", e));
@@ -83,8 +117,17 @@ export function YouTubePlayer({
       video.removeEventListener("ended", handleEnded);
       video.removeEventListener("loadedmetadata", handleLoadedMetadata);
       video.removeEventListener("canplay", handleCanPlay);
+      video.removeEventListener("error", handleError);
     };
   }, [isYouTube, tick, onEnded]);
+
+  // Sync volume state with video element
+  useEffect(() => {
+    if (videoRef.current && !isYouTube) {
+      videoRef.current.volume = volume;
+      videoRef.current.muted = isMuted;
+    }
+  }, [volume, isMuted, isYouTube]);
 
   // YouTube iframe is ready immediately
   useEffect(() => {
@@ -134,6 +177,37 @@ export function YouTubePlayer({
     }
   };
 
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+
+  const handleFullscreen = () => {
+    if (containerRef.current) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        containerRef.current.requestFullscreen().catch((err) => {
+          console.warn("Fullscreen request failed:", err);
+        });
+      }
+    }
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent<HTMLVideoElement | HTMLDivElement>) => {
+    if (isYouTube) return; // Only for MP4
+    
+    // Get container bounds
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const midpoint = rect.width / 2;
+      
+      // Left side = -10, Right side = +10
+      const delta = clickX < midpoint ? -10 : 10;
+      skip(delta);
+    }
+  };
+
   return (
     <div
       ref={containerRef}
@@ -147,33 +221,49 @@ export function YouTubePlayer({
         <video
           ref={videoRef}
           src={video.mediaUrl}
-          className="absolute inset-0 w-full h-full"
+          className="absolute inset-0 w-full h-full cursor-pointer"
           style={{ objectFit: "contain" }}
           playsInline
-          preload="metadata"
+          preload="auto"
+          onDoubleClick={handleDoubleClick}
         />
       )}
 
       {/* YouTube IFrame Fallback */}
       {isYouTube && (
-        <iframe
-          src={youtubeUrl!}
-          className="absolute inset-0 w-full h-full"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          style={{ border: "none" }}
-          title="YouTube player"
-        />
+        <div
+          className="absolute inset-0 w-full h-full cursor-pointer"
+          onDoubleClick={handleDoubleClick}
+        >
+          <iframe
+            src={youtubeUrl!}
+            className="w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            style={{ border: "none", pointerEvents: "auto" }}
+            title="YouTube player"
+          />
+        </div>
       )}
 
       {/* Loading Indicator */}
-      {!isReady && (
+      {!isReady && !videoError && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10">
           <div className="text-white text-center">
             <div className="animate-spin mb-2">
               <div className="w-8 h-8 border-3 border-white/30 border-t-white rounded-full"></div>
             </div>
             <p className="text-sm">Loading...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error Indicator */}
+      {videoError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
+          <div className="text-white text-center max-w-xs">
+            <p className="text-lg font-bold mb-2">Error Loading Video</p>
+            <p className="text-sm text-red-400">{videoError}</p>
           </div>
         </div>
       )}
@@ -195,13 +285,14 @@ export function YouTubePlayer({
               <span className="text-white text-sm font-medium">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => skip(-10)}
                   disabled={!isReady || duration === 0}
                   className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="Skip back 10 seconds"
+                  title="-10s"
                 >
                   <SkipBack className="w-5 h-5 text-white" />
                 </button>
@@ -211,6 +302,7 @@ export function YouTubePlayer({
                   disabled={!isReady}
                   className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label={isPlaying ? "Pause" : "Play"}
+                  title={isPlaying ? "Pause" : "Play"}
                 >
                   {isPlaying ? (
                     <Pause className="w-6 h-6 text-white" />
@@ -224,8 +316,46 @@ export function YouTubePlayer({
                   disabled={!isReady || duration === 0}
                   className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="Skip forward 10 seconds"
+                  title="+10s"
                 >
                   <SkipForward className="w-5 h-5 text-white" />
+                </button>
+                <div className="w-1 h-6 bg-white/30"></div>
+                <button
+                  type="button"
+                  onClick={toggleMute}
+                  disabled={!isReady}
+                  className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label={isMuted ? "Unmute" : "Mute"}
+                  title={isMuted ? "Unmute" : "Mute"}
+                >
+                  {isMuted ? (
+                    <VolumeX className="w-5 h-5 text-white" />
+                  ) : (
+                    <Volume2 className="w-5 h-5 text-white" />
+                  )}
+                </button>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={volume * 100}
+                  onChange={(e) => setVolume(parseFloat(e.target.value) / 100)}
+                  disabled={!isReady}
+                  className="w-16 h-1 accent-red-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Volume"
+                  aria-label="Volume"
+                />
+                <div className="w-1 h-6 bg-white/30"></div>
+                <button
+                  type="button"
+                  onClick={handleFullscreen}
+                  disabled={!isReady}
+                  className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Fullscreen"
+                  title="Fullscreen"
+                >
+                  <Maximize2 className="w-5 h-5 text-white" />
                 </button>
                 {isMinimized ? (
                   <button
@@ -233,6 +363,7 @@ export function YouTubePlayer({
                     onClick={onRestore}
                     className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
                     aria-label="Restore"
+                    title="Restore"
                   >
                     <Maximize2 className="w-5 h-5 text-white" />
                   </button>
@@ -242,6 +373,7 @@ export function YouTubePlayer({
                     onClick={onMinimize}
                     className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
                     aria-label="Minimize"
+                    title="Minimize"
                   >
                     <Minimize2 className="w-5 h-5 text-white" />
                   </button>
